@@ -1,5 +1,6 @@
 var createError = require('http-errors');
 var express = require('express');
+var zlib = require('zlib');
 
 var vehiclesRouter = require('./routes/vehicles');
 
@@ -17,13 +18,23 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  const status = err.status || 500;
+  const status = err.statusCode || 500;
+
+  if (err.response.headers['content-encoding'] == 'gzip') {
+    return zlib.gunzip(err.response.body, function(err, dezipped) {
+      res.status(status);
+      res.json({
+        status,
+        message: dezipped.toString()
+      });
+    });
+  }
 
   // render the error page
   res.status(status);
-  res.json({
-    message: err.message,
-    status    
+  return res.json({
+    status,
+    message: err.message
   });
 });
 

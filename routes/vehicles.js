@@ -8,6 +8,7 @@ function getVehicles(year, manufacturer, model) {
     qs: {
       format: 'json'
     },
+    encoding: null,
     json: true
   };
 
@@ -46,14 +47,20 @@ function mapVehicle(v) {
 router.post('/', function(req, res, next) {
   var { modelYear, manufacturer, model } = req.body;
 
-  getVehicles(modelYear, manufacturer, model)
+  if (modelYear === undefined || manufacturer === undefined || model === undefined) {
+    return res.json({
+      Count: 0,
+      Results: []
+    })
+  }
+
+  return getVehicles(modelYear, manufacturer, model)
     .then(function(vehicles) {
       res.json(vehicles);
     })
     .catch(next);
 });
 
-/* GET vehicles listing. */
 router.get('/:year/:manufacturer/:model', function(req, res, next) {
   var { year, manufacturer, model } = req.params;
   var withRating = req.query.withRating;
